@@ -1,0 +1,804 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!--
+  Developer: Husnutdionov Nazir K. aka Wild Pointer © 2008
+  Created: 18.11.2008 Version 0.1 (xml structure version)
+  Modify: 21.11.2008 Version 0.2 (xml structure reversion)
+  Modify: 29.11.2008 Version 0.3 (xml structure reversion)
+  Modify: 01.12.2008 Version 0.4 (xml structure reversion)
+  Modify: 11.12.2008 Version 0.5 (xml structure reversion)
+  Modify: 31.12.2008 Version 0.6 (xml structure reversion)
+    1. Add
+-->
+<DESI Version="0.6" LastModify="31.12.2008">
+  <WorkPath>d:\DESI_Work\</WorkPath>
+  <Accounts Ext=".acc">
+    <Account Name="sp-ovdr" Enabled="true" Type="File" ResultFile="sp-ovds" Description="Кредиты overdraft"></Account>
+    <Account Name="sp-skr" Enabled="true" Type="File" ResultFile="sp-skrz" Description="Счета связ. с кред."></Account>
+    <Account Name="213" Enabled="true" Type="File" ResultFile="Remains" Description="Транзиты для зарплаты"></Account>
+    <Account Name="test" Enabled="true" Type="File" ResultFile="Remains" Description="Тестирование"></Account>
+    <Account Name="spod30301" Enabled="true" Type="File" ResultFile="spod30301" Description="Выписка по СПОД"></Account>
+    <Account Name="iBankRUR" Enabled="true" Type="SQL" DB="iBank" ResultFile="iBankRUR" Description="Рублёвые счета в iBank">
+      <![CDATA[
+--SELECT
+--acc.account
+--FROM  (SELECT id, account, currency FROM ibank2.accounts WHERE status = 2) AS acc
+--INNER JOIN ibank2.c2accounts AS c2a ON acc.id = c2a.account_id
+--INNER JOIN (SELECT client_id, status FROM ibank2.clients where client_id <> 895) AS cl ON c2a.client_id = cl.client_id
+--WHERE
+--cl.status = 2
+--AND acc.currency = 'RUR'
+select a.account from ibank2.accounts a,ibank2.clients c , ibank2.c2accounts d
+ where a.id=d.account_id and c.client_id=d.client_id
+ and c.status=2 and a.currency = 'RUR' and (a.status=2 or (a.status=1 and (a.type=8 or a.type=7)))and substring(a.account,1,5)<>'40000'
+
+]]>
+    </Account>
+    <Account Name="ost_ib" Enabled="true" Type="SQL" DB="iBank" ResultFile="ost_ib" Description="Остатки iBank">
+      <![CDATA[
+SELECT
+acc.account
+FROM  (SELECT id, account, currency FROM ibank2.accounts WHERE status = 2) AS acc
+INNER JOIN ibank2.c2accounts AS c2a ON acc.id = c2a.account_id
+INNER JOIN (SELECT client_id, status FROM ibank2.clients where client_id <> 895) AS cl ON c2a.client_id = cl.client_id
+WHERE
+cl.status = 2
+AND acc.currency = 'RUR'
+]]>
+    </Account>
+    <Account Name="ost_vb" Enabled="true" Type="SQL" DB="iBank" ResultFile="ost_vb" Description="Валютные остатки iBank">
+      <![CDATA[
+SELECT
+acc.account
+FROM  (SELECT id, account, currency FROM ibank2.accounts WHERE status = 2) AS acc
+INNER JOIN ibank2.c2accounts AS c2a ON acc.id = c2a.account_id
+INNER JOIN (SELECT client_id, status FROM ibank2.clients where client_id <> 895) AS cl ON c2a.client_id = cl.client_id
+WHERE
+cl.status = 2
+AND acc.currency <> 'RUR'
+]]>
+    </Account>
+    <Account Name="iBankCurrency" Enabled="true" Type="SQL" DB="iBank" ResultFile="iBankCurrency" Description="Валютные счета в iBank"> <!-- каб. 219 (Кассин А.Н. 256) -->
+      <![CDATA[
+SELECT
+acc.account
+FROM  (SELECT id, account, currency FROM ibank2.accounts WHERE status = 2) AS acc
+INNER JOIN ibank2.c2accounts AS c2a ON acc.id = c2a.account_id
+INNER JOIN (SELECT client_id, status FROM ibank2.clients where client_id <> 895) AS cl ON c2a.client_id = cl.client_id
+WHERE
+cl.status = 2
+AND acc.currency <> 'RUR'
+]]>
+    </Account>
+  </Accounts>
+  <Results>
+    <Result Name="iBankRUR" Encoding="cp866" Enable="true">
+      <FileName>vip_ib.txt</FileName>
+      <StartAfter Enabled="true" Arguments="/U oper /S ibserv /N Zagr_vip_all /L d:\desi\logs\dts_vip.log">D:\ibank2c\dtsrun.exe</StartAfter>
+      <StartBefore Enabled="true" Arguments=""></StartBefore>
+      <Description>Информация по документам для iBank</Description>
+      <SQL>
+        <![CDATA[
+SELECT
+        ACCOUNT
+,       VALUEDATE
+,       DOCNUM
+,       DOCDATE
+,       PAYERINN
+,	PAYER
+,       PAYERACC
+,       PAYERBIC
+,       PAYCORACC
+,       PAYERBANKN
+,       DOCTYP
+,       AMOUNT
+,       GROUND
+,       PAYERKPP
+,       STAT1256
+,       CBCCODE
+,       OKATOCOD
+,       PAYGRNDP
+,       TAXPRERP
+,       DOCNUMP
+,       PAYTYPEP
+,       DOCDATEP
+,	RECINN
+,	RECKPP
+,	RECIEVER
+,	RECACC
+,	RECBIC
+,	RECCORACC
+,	RECBANKN
+FROM QTEMP.Y9Q10PF
+WHERE
+  RECTYP = 1
+]]>
+      </SQL>
+      <FormatFields>true</FormatFields>
+      <Divider>^</Divider>
+      <DividerFirst>^</DividerFirst>
+      <DividerLast></DividerLast>
+      <TrimFields>true</TrimFields>
+      <ShowCaptions>false</ShowCaptions>
+      <NextLine>#13#10</NextLine>
+      <EOF>#13#10</EOF>
+      <FormatDate>dd.MM.yyyy</FormatDate>
+      <FormatMoney>00000000000000000.00</FormatMoney>
+      <FormatDebit>-1</FormatDebit>
+      <FormatCredit>1</FormatCredit>
+    </Result>
+    <Result Name="iBankCurrency" Encoding="cp866" Enable="true">
+      <FileName>vip_vb.txt</FileName>
+      <StartAfter Enabled="true" Arguments="/U oper /S ibserv /N Zagr_vip_allv /L d:\desi\logs\dts_vip.log">C:\ibank2cv\dtsrun.exe</StartAfter>
+      <StartBefore Enabled="true" Arguments=""></StartBefore>
+      <Description>Информация по документам для iBank</Description>
+      <SQL>
+        <![CDATA[
+	SELECT
+		ACCOUNT
+	,	VALUEDATE
+	,	DOCNUM
+	,	DOCDATE
+	,	RECINN
+	,	RECIEVER
+	,	RECACC
+	,	RECBIC
+	,	RECCORACC
+	,	RECBANKN
+	,	DOCTYP
+	,	AMOUNT
+	,	GROUND
+	,	AMOUNTNAT
+	,	STAT1256
+	,	CBCCODE
+	,	OKATOCOD
+	,	PAYGRNDP
+	,	TAXPRERP
+	,	DOCNUMP
+	,	PAYTYPEP
+	,	DOCDATEP 
+	FROM QTEMP.Y9Q10PF 
+	WHERE 
+	  RECTYP = 1
+
+]]>
+      </SQL>
+      <FormatFields>true</FormatFields>
+      <Divider>^</Divider>
+      <DividerFirst>^</DividerFirst>
+      <DividerLast></DividerLast>
+      <TrimFields>true</TrimFields>
+      <ShowCaptions>false</ShowCaptions>
+      <NextLine>#13#10</NextLine>
+      <EOF>#13#10</EOF>
+      <FormatDate>dd.MM.yyyy</FormatDate>
+      <FormatMoney>00000000000000000.00</FormatMoney>
+      <FormatDebit>-1</FormatDebit>
+      <FormatCredit>1</FormatCredit>
+    </Result>
+    <Result Name="Remains" Encoding="cp866" Enable="true">
+      <FileName>Remains.txt</FileName>
+      <StartAfter Enabled="true" Arguments=""></StartAfter>
+      <StartBefore Enabled="true" Arguments=""></StartBefore>
+      <Description>Информация по остаткам</Description>
+      <SQL>
+        <![CDATA[
+SELECT
+	ACCOUNT
+,	STATDAT
+,	OPENBAL
+,	CLOSBAL
+,	OPENBALN
+,	CLOSBALN
+,	DEBETTURN
+,	CREDITTURN
+,	DEBETTURNN
+,	CREDTURNN
+FROM QTEMP.Y9Q10PF
+WHERE
+	RECTYP = 0
+]]>
+      </SQL>
+      <FormatFields>true</FormatFields>
+      <Divider>^</Divider>
+      <DividerFirst>^</DividerFirst>
+      <DividerLast></DividerLast>
+      <TrimFields>false</TrimFields>
+      <ShowCaptions>false</ShowCaptions>
+      <NextLine>#13#10</NextLine>
+      <EOF>#13#10</EOF>
+      <FormatDate>dd.MM.yyyy</FormatDate>
+      <FormatMoney>00000000000000000.00</FormatMoney>
+      <FormatDebit>-1</FormatDebit>
+      <FormatCredit>1</FormatCredit>
+    </Result>
+
+    <Result Name="ost_ib" Encoding="cp866" Enable="true">
+      <FileName>ost_ib.txt</FileName>
+      <Description>Информация по остаткам IB </Description>
+      <SQL>
+        <![CDATA[
+SELECT
+	ACCOUNT
+,	STATDAT
+,	OPENBAL
+,	CLOSBAL
+,	OPENBALN
+,	CLOSBALN
+,	DEBETTURN
+,	CREDITTURN
+,	DEBETTURNN
+,	CREDTURNN
+FROM QTEMP.Y9Q10PF
+WHERE
+	RECTYP = 0
+]]>
+      </SQL>
+      <FormatFields>true</FormatFields>
+      <Divider>^</Divider>
+      <DividerFirst></DividerFirst>
+      <DividerLast></DividerLast>
+      <TrimFields>false</TrimFields>
+      <ShowCaptions>false</ShowCaptions>
+      <NextLine>#13#10</NextLine>
+      <EOF>#13#10</EOF>
+      <FormatDate>dd.MM.yyyy</FormatDate>
+      <FormatMoney>00000000000000000.00</FormatMoney>
+      <FormatDebit>-1</FormatDebit>
+      <FormatCredit>1</FormatCredit>
+    </Result>
+
+    <Result Name="ost_vb" Encoding="cp866" Enable="true">
+      <FileName>ost_vb.txt</FileName>
+      <StartAfter Enabled="true" Arguments=""></StartAfter>
+      <StartBefore Enabled="true" Arguments=""></StartBefore>
+      <Description>Информация по остаткам IB </Description>
+      <SQL>
+        <![CDATA[
+SELECT
+	ACCOUNT
+,	STATDAT
+,	OPENBAL
+,	CLOSBAL
+,	OPENBALN
+,	CLOSBALN
+,	DEBETTURN
+,	CREDITTURN
+,	DEBETTURNN
+,	CREDTURNN
+FROM QTEMP.Y9Q10PF
+WHERE
+	RECTYP = 0
+]]>
+      </SQL>
+      <FormatFields>true</FormatFields>
+      <Divider>^</Divider>
+      <DividerFirst></DividerFirst>
+      <DividerLast></DividerLast>
+      <TrimFields>false</TrimFields>
+      <ShowCaptions>false</ShowCaptions>
+      <NextLine>#13#10</NextLine>
+      <EOF>#13#10</EOF>
+      <FormatDate>dd.MM.yyyy</FormatDate>
+      <FormatMoney>00000000000000000.00</FormatMoney>
+      <FormatDebit>-1</FormatDebit>
+      <FormatCredit>1</FormatCredit>
+    </Result>
+
+
+    <Result Name="sp-ovds" Encoding="cp866" Enable="true">
+      <FileName>sp-ovds.txt</FileName>
+      <StartAfter Enabled="true" Arguments=""></StartAfter>
+      <Description>Информация по остаткам</Description>
+      <SQL>
+        <![CDATA[
+SELECT
+	ACCOUNT
+,	CLOSBAL
+FROM QTEMP.Y9Q10PF
+WHERE
+	RECTYP = 0
+]]>
+      </SQL>
+      <FormatFields>true</FormatFields>
+      <Divider>^</Divider>
+      <DividerFirst>^</DividerFirst>
+      <DividerLast></DividerLast>
+      <TrimFields>true</TrimFields>
+      <ShowCaptions>false</ShowCaptions>
+      <NextLine>#13#10</NextLine>
+      <EOF>#13#10</EOF>
+      <FormatDate>dd.MM.yyyy</FormatDate>
+      <FormatMoney>00000000000000000.00</FormatMoney>
+      <FormatDebit>2</FormatDebit>
+      <FormatCredit>1</FormatCredit>
+    </Result>
+    <Result Name="sp-skrz" Encoding="cp866" Enable="true">
+      <FileName>sp-skrz.txt</FileName>
+      <StartAfter Enabled="true" Arguments=""></StartAfter>
+      <StartBefore Enabled="true" Arguments=""></StartBefore>
+      <Description>Информация по остаткам</Description>
+      <SQL>
+        <![CDATA[
+SELECT
+	ACCOUNT
+,	CLOSBAL
+FROM QTEMP.Y9Q10PF
+WHERE
+	RECTYP = 0
+]]>
+      </SQL>
+      <FormatFields>true</FormatFields>
+      <Divider>^</Divider>
+      <DividerFirst>^</DividerFirst>
+      <DividerLast></DividerLast>
+      <TrimFields>true</TrimFields>
+      <ShowCaptions>false</ShowCaptions>
+      <NextLine>#13#10</NextLine>
+      <EOF>#13#10</EOF>
+      <FormatDate>dd.MM.yyyy</FormatDate>
+      <FormatMoney>00000000000000000.00</FormatMoney>
+      <FormatDebit>2</FormatDebit>
+      <FormatCredit>1</FormatCredit>
+    </Result>
+    <Result Name="spod30301" Encoding="cp866" Enable="true">
+      <FileName>spod30301.txt</FileName>
+      <StartAfter Enabled="true" Arguments=""></StartAfter>
+      <StartBefore Enabled="true" Arguments=""></StartBefore>
+      <Description>Выписка по СПОД</Description>
+      <SQL>
+        <![CDATA[
+SELECT
+	DOCTYP
+,	VALUEDATE
+,	DOCDATE
+,	DOCNUM
+,	AMOUNT
+,	AMOUNTNAT
+,	GROUND
+,	PAYERACC
+,	RECACC
+FROM QTEMP.Y9Q10PF
+WHERE
+	RECTYP = 1
+]]>
+      </SQL>
+      <FormatFields>true</FormatFields>
+      <Divider>^</Divider>
+      <DividerFirst>^</DividerFirst>
+      <DividerLast></DividerLast>
+      <TrimFields>true</TrimFields>
+      <ShowCaptions>false</ShowCaptions>
+      <NextLine>#13#10</NextLine>
+      <EOF>#13#10</EOF>
+      <FormatDate>dd.MM.yyyy</FormatDate>
+      <FormatMoney>00000000000000000.00</FormatMoney>
+      <FormatDebit>-1</FormatDebit>
+      <FormatCredit>1</FormatCredit>
+    </Result>
+  </Results>
+  <DB>
+    <Equation>
+      <Dsn>Equation</Dsn>
+      <Uid></Uid>
+      <Pwd></Pwd>
+      <Unit>ABO</Unit>
+      <DateFormat>yyyyMMdd</DateFormat>
+      <IP>192.168.9.35</IP>
+    </Equation>
+    <iBank>
+      <Dsn>iBank</Dsn>
+      <Uid></Uid>
+      <Pwd></Pwd>
+      <DateFormat>dd.MM.yyyy</DateFormat>
+      <IP>10.1.25.97</IP>
+    </iBank>
+  </DB>
+  <AutoStart name="Default" Enabled="false">
+    <!-- Период от 1 минуты до 59 минут. Пустое поле не учитывается. Преоритетное поле. -->
+    <Period>1</Period>
+    <!-- Час от 1 час до 24 часов. Пустое поле не учитывается. -->
+    <Hour></Hour>
+    <!-- Минуты от 1 минуты до 59 минут. Пустое поле не учитывается. -->
+    <Minute></Minute>
+    <!-- Интервал в миллисекундах 1000 = 1 секунде. -->
+    <Interval>1000</Interval>
+  </AutoStart>
+  <UserLogFile>ex_log.txt</UserLogFile>
+  <DebugMode>false</DebugMode>
+  <Procedure name="RUN_5">
+    <Description>Формирование выписки из MisysEquation</Description>
+    <ResultFileds>
+      <!-- Поля-идентификаторы -->
+      <Field name="ACCOUNT">
+        <type>string</type>
+        <size>20</size>
+        <caption>Номер счёта</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="STATDAT">
+        <type>Date</type>
+        <size>20</size>
+        <caption>Дата выписки</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="RECTYP">
+        <type>string</type>
+        <size>1</size>
+        <caption>Тип записи («0» - остаток, «1» - документ)</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <!-- ^ Поля-идентификаторы -->
+      <!-- Поля – информация по остаткам -->
+      <Field name="OPENBAL">
+        <type>Money</type>
+        <size></size>
+        <caption>Входящий остаток</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="CLOSBAL">
+        <type>Money</type>
+        <size></size>
+        <caption>Исходящий остаток</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="OPENBALN">
+        <type>Money</type>
+        <size></size>
+        <caption>Входящий остаток в национальной валюте</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="CLOSBALN">
+        <type>Money</type>
+        <size></size>
+        <caption>Исходящий остаток в национальной валюте</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="DEBETTURN">
+        <type>Money</type>
+        <size></size>
+        <caption>Оборот по дебету</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="CREDITTURN">
+        <type>Money</type>
+        <size></size>
+        <caption>Оборот по кредиту</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="DEBETTURNN">
+        <type>Money</type>
+        <size></size>
+        <caption>Оборот по дебету в национальной валюте</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="CREDTURNN">
+        <type>Money</type>
+        <size></size>
+        <caption>Оборот по кредиту в национальной валюте</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <!-- ^ Поля – информация по остаткам -->
+      <!-- Поля – информация по документам -->
+      <Field name="DOCTYP">
+        <type>DocType</type>
+        <size>2</size>
+        <caption>Тип документа «1» - кредит «-1» - дебет</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="VALUEDATE">
+        <type>Date</type>
+        <size></size>
+        <caption>Дата проводки</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="BANKOFFS">
+        <type>string</type>
+        <size>255</size>
+        <caption>Исполнитель документа в банке - ФИО пользователя проведшего документ</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="DOCDATE">
+        <type>Date</type>
+        <size></size>
+        <caption>Дата документа</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="DOCNUM">
+        <type>string</type>
+        <size>15</size>
+        <caption>Номер документа</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="AMOUNT">
+        <type>Money</type>
+        <size></size>
+        <caption>Сумма</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="AMOUNTNAT">
+        <type>Money</type>
+        <size></size>
+        <caption>Сумма в национальной валюте</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="CURRCODE">
+        <type>string</type>
+        <size>3</size>
+        <caption>Код валюты документа</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="GROUND">
+        <type>string</type>
+        <size>255</size>
+        <caption>Основание платежа</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="PAYER">
+        <type>string</type>
+        <size>255</size>
+        <caption>Название плательщика</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="PAYPROPTYP">
+        <type>string</type>
+        <size>10</size>
+        <caption>Форма собственности плательщика</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="PAYERACC">
+        <type>string</type>
+        <size>20</size>
+        <caption>Счет плательщика</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="PAYERBIC">
+        <type>string</type>
+        <size>9</size>
+        <caption>БИК плательщика</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="PAYERBANKN">
+        <type>string</type>
+        <size>255</size>
+        <caption>Название банка плательщика</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="PAYERBANKT">
+        <type>string</type>
+        <size>10</size>
+        <caption>Тип банка плательщика</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="PAYCORACC">
+        <type>string</type>
+        <size>20</size>
+        <caption>Корсчет плательщика</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="PAYERINN">
+        <type>string</type>
+        <size>14</size>
+        <caption>ИНН плательщика</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="PAYERKPP">
+        <type>string</type>
+        <size>9</size>
+        <caption>КПП плательщика</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="PAYERPLACE">
+        <type>string</type>
+        <size>255</size>
+        <caption>Название населенного пункта банка плательщика</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="PAYERPLTYP">
+        <type>string</type>
+        <size>5</size>
+        <caption>Тип населенного пункта банка плательщика</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="RECIEVER">
+        <type>string</type>
+        <size>255</size>
+        <caption>Название получателя</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="RECPROPTYP">
+        <type>string</type>
+        <size>10</size>
+        <caption>Форма собственности получателя</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="RECACC">
+        <type>string</type>
+        <size>20</size>
+        <caption>Счет получателя</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="RECBIC">
+        <type>string</type>
+        <size>9</size>
+        <caption>БИК получателя</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="RECBANKN">
+        <type>string</type>
+        <size>255</size>
+        <caption>Название банка получателя</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="RECBANKT">
+        <type>string</type>
+        <size>10</size>
+        <caption>Тип банка получателя</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="RECCORACC">
+        <type>string</type>
+        <size>20</size>
+        <caption>Корсчет получателя</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="RECINN">
+        <type>string</type>
+        <size>14</size>
+        <caption>ИНН получателя</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="RECKPP">
+        <type>string</type>
+        <size>9</size>
+        <caption>КПП получателя</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="RECPLACE">
+        <type>string</type>
+        <size>255</size>
+        <caption>Название населенного пункта банка получателя</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="RECPLTYP">
+        <type>string</type>
+        <size>5</size>
+        <caption>Тип населенного пункта банка получателя</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="TAXPRERP">
+        <type>string</type>
+        <size>10</size>
+        <caption>Показатель налогового периода</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="STAT1256">
+        <type>string</type>
+        <size>2</size>
+        <caption>Показатель статуса</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="SENDTYPE">
+        <type>string</type>
+        <size>15</size>
+        <caption>Способ отправки (расшифровка)</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="ACCOPTYP">
+        <type>string</type>
+        <size>2</size>
+        <caption>Вид операции (шифр)</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="CBCCODE">
+        <type>string</type>
+        <size>20</size>
+        <caption>Код бюджетной классификации</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="DOCDATEP">
+        <type>string</type>
+        <size>10</size>
+        <caption>Показатель даты документа</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="DOCNUMP">
+        <type>string</type>
+        <size>15</size>
+        <caption>Показатель номера документа</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="OKATOCOD">
+        <type>string</type>
+        <size>11</size>
+        <caption>Код ОКАТО</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="PAYGRNDP">
+        <type>string</type>
+        <size>2</size>
+        <caption>Показатель основания платежа</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="PAYTYPEP">
+        <type>string</type>
+        <size>2</size>
+        <caption>Показатель типа платежа</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="PAYMURGNT">
+        <type>string</type>
+        <size>2</size>
+        <caption>Очередность платежа</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="ACCEPTDATE">
+        <type>Date</type>
+        <size></size>
+        <caption>Дата приема документа</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <Field name="ERRMSG">
+        <type>Date</type>
+        <size>255</size>
+        <caption>Текст сообщения об ошибке, если выписку сформировать не удалось</caption>
+        <invariable>true</invariable>
+        <obligatory>true</obligatory>
+      </Field>
+      <!-- ^ Поля – информация по документам -->
+    </ResultFileds>
+  </Procedure>
+</DESI>
