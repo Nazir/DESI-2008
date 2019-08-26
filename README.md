@@ -1,5 +1,3 @@
-<!-- ![nazir.pro](http://nazir.pro/img/minidb-postgresql-logo.png) -->
-
 # DESI #
 
 DESI (data exchange system) - система обмена данными
@@ -13,6 +11,14 @@ Stack
 -----
 [C#], [SQL], [.NET Framework 2], [Microsoft Visual Studio 2008].
 
+
+Screenshots
+-----------
+Главное окно:
+![Главное окно](https://github.com/Nazir/DESI-2008/blob/Screenshots/DESI_MainForm.png)
+
+Окно прогресса:
+![Окно прогресса](https://github.com/Nazir/DESI-2008/blob/Screenshots/DESI_ProgerssForm.png)
 
 Repo owner
 ----------
