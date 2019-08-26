@@ -15,9 +15,11 @@ Stack
 Screenshots
 -----------
 Главное окно:
+
 ![Главное окно](https://github.com/Nazir/DESI-2008/blob/master/Screenshots/DESI_MainForm.png)
 
 Окно прогресса:
+
 ![Окно прогресса](https://github.com/Nazir/DESI-2008/blob/master/Screenshots/DESI_ProgerssForm.png)
 
 Repo owner
